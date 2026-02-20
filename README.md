@@ -1,6 +1,6 @@
-# 🛡️ Doküman Editörü Veri Kurtarma Yardımcısı
+# Doküman Editörü Veri Kurtarma Yardımcısı
 
-> **UYAP Doküman Editörü** kilitlendiğinde bellekte kalan belge verilerini Windows bellek döküm (`.DMP`) dosyasından kurtarmaya yarayan, tamamen tarayıcı tabanlı tek sayfalık bir araç.
+**UYAP Doküman Editörü** kilitlendiğinde bellekte kalan belge verilerini Windows bellek döküm (`.DMP`) dosyasından kurtarmaya yarayan, tamamen tarayıcı tabanlı tek sayfalık bir araç.
 
 ---
 
@@ -9,7 +9,7 @@
 - [Genel Bakış](#genel-bakış)
 - [Nasıl Çalışır?](#nasıl-çalışır)
 - [Altı Fazlı Tarama Motoru](#altı-fazlı-tarama-motoru)
-  - [Faz 1 — İmza Taraması (Chunked)](#faz-1--imza-taraması-chunked)
+  - [Faz 1 — İmza Taraması](#faz-1--i%CC%87mza-taramas%C4%B1)
   - [Faz 2 — Şablon Eşleştirme](#faz-2--şablon-eşleştirme)
   - [Faz 3 — UTF-8 XML Şablon Çıkartma](#faz-3--utf-8-xml-şablon-çıkartma)
   - [Faz 4 — Sıkıştırılmış ZIP/UDF Girdileri](#faz-4--sıkıştırılmış-zipudf-girdileri)
@@ -19,7 +19,7 @@
 - [Kullanım Adımları](#kullanım-adımları)
   - [Adım 1: Bellek Döküm Dosyası Alma](#adım-1-bellek-döküm-dosyası-alma)
   - [Adım 2: Dosyayı Araçla Yükleme](#adım-2-dosyayı-araçla-yükleme)
-  - [Adım 3: Sonuçları İnceleme ve Dışa Aktarma](#adım-3-sonuçları-inceleme-ve-dışa-aktarma)
+  - [Adım 3: Sonuçları İnceleme ve Dışa Aktarma](#ad%C4%B1m-3-sonu%C3%A7lar%C4%B1-i%CC%87nceleme-ve-d%C4%B1%C5%9Fa-aktarma)
 - [Teknik Mimari](#teknik-mimari)
   - [Dosya Yapısı](#dosya-yapısı)
   - [Kullanılan Teknolojiler](#kullanılan-teknolojiler)
@@ -71,7 +71,7 @@ Son olarak, Java Swing düzenleyicisi (`javax.swing.text.GapContent`) klavyeden 
 
 Tarama `processFile()` ana fonksiyonu tarafından yönetilir ve aşağıdaki fazlar sırayla çalıştırılır.
 
-### Faz 1 — İmza Taraması (Chunked)
+### Faz 1 — İmza Taraması
 
 **Hedef:** Dosyayı parça parça okuyarak tüm `<template format_id=` başlangıç imzalarını, `</template>` bitiş imzalarını ve `PK\x03\x04` (ZIP local file header) + `content.xml` dosya adı kombinasyonlarını saptar.
 
@@ -178,8 +178,6 @@ Geçerli şablonlardan metin içeriği `<![CDATA[...]]>` bloğu ayrıştırılar
 ## Kullanım Adımları
 
 ### Adım 1: Bellek Döküm Dosyası Alma
-
-> ⚠️ **KRİTİK:** Uygulama kilitlendiğinde **kesinlikle kapatmayın.** Kapatırsanız bellekteki veriler silinir.
 
 1. `Ctrl + Shift + Esc` ile **Görev Yöneticisi**'ni açın.
 2. Listede **UYAP Doküman Editörü** işlemini bulun (genellikle en yüksek CPU kullanımında).
@@ -395,7 +393,3 @@ Tarama duraklar ve tüm ilerleme kaybolur. Sayfa açık kaldığı sürece taram
 **S: Araç hangi UYAP sürümleriyle çalışır?**
 
 XML `<template format_id=...>` yapısını kullanan tüm UYAP Doküman Editörü sürümleriyle çalışması beklenir. UDF formatı (ZIP tabanlı) değiştirildiğinde Faz 4 güncellenmesi gerekebilir.
-
----
-
-*Bu araç tamamen tarayıcı tabanlı olup herhangi bir kurulum, sunucu veya internet bağlantısı gerektirmez.*
