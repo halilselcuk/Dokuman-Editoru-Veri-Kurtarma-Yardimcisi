@@ -1,0 +1,2801 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doküman Editörü Veri Kurtarma Yardımcısı</title>
+    <style>
+        :root {
+            --primary: #1a5276;
+            --primary-light: #2980b9;
+            --accent: #e74c3c;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #dce1e6;
+            --success: #27ae60;
+            --warning: #f39c12;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 36px 0 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        header .header-sub {
+            opacity: 0.92;
+            font-size: 0.95em;
+            margin-bottom: 24px;
+        }
+
+        header .header-explainer {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 960px;
+            margin: 0 auto 20px;
+        }
+
+        header .explainer-box {
+            background: rgba(255,255,255,0.13);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 14px 18px;
+            flex: 1 1 200px;
+            max-width: 280px;
+            text-align: left;
+        }
+
+        header .explainer-box .box-title {
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        header .explainer-box p {
+            opacity: 0.88;
+            font-size: 0.82em;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        header .header-warning {
+            display: inline-block;
+            background: rgba(255, 220, 100, 0.2);
+            border: 1px solid rgba(255, 220, 100, 0.5);
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 0.83em;
+            opacity: 0.95;
+            max-width: 820px;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .step-num {
+            background: var(--primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            flex-shrink: 0;
+        }
+
+        .instructions {
+            background: #fef9e7;
+            border-left: 4px solid var(--warning);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 10px 0;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.7;
+        }
+
+        .instructions code {
+            background: #eaf2f8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--primary);
+        }
+
+        .instructions .warning {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .drop-zone {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 50px 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--primary-light);
+            background: #eaf2f8;
+        }
+
+        .drop-zone .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .drop-zone p {
+            font-size: 1.1em;
+            color: var(--text-light);
+        }
+
+        .drop-zone .format-note {
+            font-size: 0.85em;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar-wrapper {
+            background: #ecf0f1;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 28px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 20px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-light);
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .result-summary {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #eaf2f8;
+            border-radius: 8px;
+            padding: 15px 20px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-box .num {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-box .label {
+            font-size: 0.85em;
+            color: var(--text-light);
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            background: #f0f4f8;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            transition: background 0.2s;
+        }
+        .collapsible-header:hover {
+            background: #e2e8f0;
+        }
+        .toggle-arrow {
+            font-size: 0.8em;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .toggle-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .findings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.9em;
+        }
+        .findings-table th {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        .findings-table td {
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            vertical-align: top;
+        }
+        .findings-table tr:hover {
+            background: #f0f7ff;
+        }
+        .findings-table .text-preview {
+            max-width: 400px;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+        .marker-region-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 10px 0;
+            padding: 12px 16px;
+        }
+        .marker-region-card .region-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .marker-region-card .region-text {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px 12px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--text-secondary);
+        }
+        .marker-tag {
+            display: inline-block;
+            background: #e8edf2;
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+        .reject-reason {
+            color: #dc3545;
+            font-size: 0.85em;
+            margin-top: 4px;
+        }
+
+        .doc-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+
+        .doc-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .doc-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .doc-header h3 {
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+
+        .doc-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: var(--text-light);
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .doc-preview {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            background: #fafbfc;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .doc-preview.active {
+            display: block;
+        }
+
+        .doc-text-preview {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Times New Roman', serif;
+            font-size: 1em;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .no-results .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .collapsible-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-trigger::after {
+            content: ' ▼';
+            font-size: 0.7em;
+        }
+
+        .collapsible-trigger.collapsed::after {
+            content: ' ▶';
+        }
+
+        .export-all-bar {
+            display: none;
+            background: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .export-all-bar.active {
+            display: flex;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--text-light);
+            font-size: 0.85em;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            header h1 { font-size: 1.3em; }
+            .card { padding: 15px; }
+            .drop-zone { padding: 30px 15px; }
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .props-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .props-table th,
+        .props-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .props-table th {
+            background: #f8f9fa;
+            font-size: 0.85em;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <h1>🛡️ Doküman Editörü Veri Kurtarma Yardımcısı</h1>
+        <p class="header-sub">Kilitlenmiş Uyap Doküman Editörü içinden veri kurtarmaya yarar</p>
+
+        <div class="header-explainer">
+            <div class="explainer-box">
+                <div class="box-title">🔍 Kurtarma nasıl çalışır?</div>
+                <p>Belgelerinizi bellekte XML tabanlı “template” formatında tutar. Program kilitlendiğinde bu veriler RAM’de canlı kalmaya devam eder. Windows’un yazdığı .DMP dosyası, o andaki RAM içeriğinin bir anlık görüntüsüdür. Bu araç, o dosyayı tarayarak belge verilerini tespit etmeye çalışır.</p>
+            </div>
+            <div class="explainer-box">
+                <div class="box-title">🧠 Altı fazlı tarama</div>
+                <p><strong>Faz 1–3:</strong> UTF-8 XML şablonları (UDF içindeki <em>content.xml</em>) aranır. <strong>Faz 4:</strong> Sıkıştırılmış ZIP/UDF girdileri incelenir. <strong>Faz 5a/5b:</strong> Java heap’indeki UTF-16LE şablonları ve kaydedilmemiş GapContent tamponları aranır. <strong>Faz 6:</strong> CDATA blokları ve Türkçe marker’ları içeren metin tamponları taranır.</p>
+            </div>
+            <div class="explainer-box">
+                <div class="box-title">⚠️ Her zaman başarılı olmaz</div>
+                <p>Kurtarmanın başarısı öngörülemez. Windows bellek alanlarını geri yazmış olabilir. Java’nın çöp toplayıcısı veriyi taşımış ya da silmiş olabilir. Belge hiç kaydedilmediyse şablon yapısı oluşmamış olabilir.</p>
+            </div>
+        </div>
+
+        <div class="header-warning">
+            💡 Bu araç tamamen tarayıcınızda çalışır; sunucu veya internet bağlantısı gerektirmez, tüm işlem cihazınızda gerçekleşir ve hiçbir veri dışarıya gönderilmez.
+            &nbsp;|&nbsp; Dosya boyutu büyükse tarama uzun sürebilir, sayfayı kapatmayın.
+            &nbsp;|&nbsp; Sonuçlar kesin doğrulanmış belge değil, kurtarma <em>adayları</em>dır; içeriği açmadan önce gözden geçirin.
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- STEP 1: Instructions -->
+    <div class="card">
+        <h2><span class="step-num">1</span> Bellek Döküm (Memory Dump) Alma Talimatları</h2>
+        <div class="instructions" style="background:#fdedec; border-left-color:#e74c3c; margin-bottom:15px;">
+            <p style="font-size:1.1em;"><strong>🚨 ÖNEMLİ: Program kilitlendiğinde (yanıt vermediğinde) kesinlikle kapatmayın!</strong></p>
+            <p>Programı kapatırsanız bellekteki veriler silinir ve kurtarma işlemi yapılamaz. Önce aşağıdaki adımları uygulayarak bellek dökümünü alın, ardından verilerinizi kurtarın.</p>
+        </div>
+        <div class="instructions">
+            <p style="margin-bottom: 18px;"><strong>Bellek dökümü almak için aşağıdaki adımları izleyin:</strong></p>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="background: var(--primary); color: white; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95em; flex-shrink: 0;">1</div>
+                    <div>
+                        <p style="margin-bottom: 10px;">Klavyeden <code>Ctrl + Shift + Esc</code> tuşlarına aynı anda basarak <strong>Görev Yöneticisi</strong>'ni açın. Listede <strong>Uyap Dökuman Editörü</strong> işlemini bulun (en yüksek CPU kullanan işlem olacaktır). İlgili işleme <strong>sağ tıklayın</strong> ve açılan menüden <strong>"Bellek dökümü dosyası oluştur"</strong> seçeneğine tıklayın.</p>
+                        <img src="data:image/jpeg;base64,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" alt="Görev Yöneticisi" style="max-width: 100%; max-height: 340px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border);">
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="background: var(--primary); color: white; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95em; flex-shrink: 0;">2</div>
+                    <div>
+                        <p style="margin-bottom: 10px;">Bellek dökümü dosyası oluşturulduğunda dosyanın kaydedildiği konum gösterilecektir. <strong>"Yolu kopyala"</strong> düğmesine tıklayın</p>
+                        <img src="data:image/jpeg;base64,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" alt="Sağ tık menüsü" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border);">
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="background: var(--primary); color: white; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95em; flex-shrink: 0;">3</div>
+                    <div>
+                        <p style="margin-bottom: 10px;">Bu sayfadaki "(2) Bellek Döküm Dosyasını Yükleyin" alanına tıkladıktan sonra kopyaladığınız yolu yapıştırarak "Aç" butonuna tıklayın.</p>
+                        <img src="data:image/jpeg;base64,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+Hk2r32iwxgPf6u6755DySiqi7VGcc5yQe1cXTPNT++v50eav99fzpgP61738LLHwT4z8IaHZ6/JaaRqtzfnw5PeIIY2+yBWulmG7gSswW2ExxgMMnNeA+av99fzpC8bZyyHIx1HSnpt3Cx9Ey/Cr4cWkiww6lqlhqbvc3ML6hf2gFqsE1sFikiAcOzrLKQd+MIDtPzAUtD8H+E9V8L/ABUtbm+trvUtO8QK+jw/aIILnUkRLkEJMRtVANsjBQA+wKuCRXgKmEDA8sflSkxMMEoQBjkihPW4PXT+v61PqvxJ8HPh7rep6rrsupAC68SGC3tNAvrURval3QosbEeWylFckZARgeSQKybH4R+BE0q206/vrKOObVFgudctNVtpfJk+3rC1khZFkOIAZfPICc/dxmvmgiAkn93nGO1LmHOcpnGM8dPSpKv3NTXhYrreoLpkUsGnLO628c0olcRhiF3OAoY4GcgAc1Rpnmp/fUfjR5yf30/OhaIkfRTPNT++v50ean99fzpgPopnnJ/fT86POT++n50APopnnJ/fT86POT++n50APopnnJ/fT86POT++n50APopnnJ/fT86POT++n50APopnnJ/fX86PNX++vr1oAfRTPOT++n50ecn99PzoAfRTPOT++n50ecn99PzoAfRTPOT++n50ecn99PzoAfRTPOT++n50ecn99PzoAfRTPOT++n50ecn99PzoAfRTDKo6soz70ecn99PzoAfRTPNT++v50ecn99PzoAfRTPNT++v50ean99fzoAfRTPNT++v50ean99fzoAfRTPNX++v50ecn99PzoA+qv2briK3+COpNNcR26nxIcNLcLCCfsqdC13bZ/wC+m+neuy8UXdtN8L/iMsF1DO3/AAj8+Viu45SBvTsuo3B/8cH+8Oh+XPh/8c/F/wAL9OurDw5q8NnZ3Mwnlhmtop1Mm3buG9Tg4AHHpWr4m/ab+IPi/wAP3+ianrttJpt9H5NxFDYwQtImQSu5UBAOB0oA5PwH/wAIy3iqwTxgNRHh6R9lzLpcipPCD0kG5WDAdSvf1qx8SI/CMHi68t/A7anN4chPlwXOqyK01wR1kwqrtU9lIzjrXK+cn99fzoMiqcFlB9CaAH1+l/8AwTA8GeEPGHgPxB/wleiaLrTWyWwthrFrFP5Qa4vS2zzAdoJAzj0HpX5m+an9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" alt="Yolu kopyala" style="max-width: 100%; max-height: 330px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border);">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: Upload -->
+    <div class="card">
+        <h2><span class="step-num">2</span> Bellek Döküm Dosyasını Yükleyin</h2>
+        <div class="drop-zone" id="dropZone">
+            <div class="icon">📂</div>
+            <p>Döküm dosyasını (.DMP) buraya sürükleyin veya tıklayarak seçin</p>
+            <p class="format-note">Desteklenen format: .DMP (Windows Bellek Döküm Dosyası)</p>
+            <input type="file" id="fileInput" accept=".dmp,.DMP">
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="progress-text" id="progressText">%0</div>
+            </div>
+            <div class="status-msg" id="statusMsg">Dosya okunuyor...</div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Results -->
+    <div class="card results-container" id="resultsContainer">
+        <h2><span class="step-num">3</span> Kurtarılan Dokümanlar</h2>
+
+        <div class="result-summary" id="resultSummary"></div>
+
+        <div class="export-all-bar" id="exportAllBar">
+            <span>📦 Tüm dokümanları toplu olarak indirebilirsiniz</span>
+            <button class="btn btn-success" onclick="exportAllUDF()">⬇️ Tümünü İndir (.udf)</button>
+        </div>
+
+        <div id="resultsContent"></div>
+
+        <!-- All findings from all phases -->
+        <div id="allFindingsSection" style="display:none; margin-top: 24px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('allFindingsContent', 'allFindingsToggle')">
+                <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+                    📋 Tüm Bulunanlar <span id="allFindingsCount" style="font-size:0.8em; color:var(--text-secondary);"></span>
+                    <span class="toggle-arrow" id="allFindingsToggle">▶</span>
+                </h3>
+            </div>
+            <div id="allFindingsContent" style="display:none;"></div>
+        </div>
+
+        <!-- All memory texts found across all phases -->
+        <div id="allMemoryTextsSection" style="display:none; margin-top: 24px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('allMemoryTextsContent', 'allMemoryTextsToggle')">
+                <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+                    💾 Bellekte Bulunan Tüm Metinler <span id="allMemoryTextsCount" style="font-size:0.8em; color:var(--text-secondary);"></span>
+                    <span class="toggle-arrow" id="allMemoryTextsToggle">▶</span>
+                </h3>
+            </div>
+            <div id="allMemoryTextsContent" style="display:none;"></div>
+        </div>
+
+        <!-- Unmatched marker hits from Phase 6 GapContent scanner -->
+        <div id="unmatchedMarkersSection" style="display:none; margin-top: 24px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('unmatchedMarkersContent', 'unmatchedMarkersToggle')">
+                <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+                    🔍 Eşleşmeyen Marker Hit'leri <span id="unmatchedMarkersCount" style="font-size:0.8em; color:var(--text-secondary);"></span>
+                    <span class="toggle-arrow" id="unmatchedMarkersToggle">▶</span>
+                </h3>
+            </div>
+            <div id="unmatchedMarkersContent" style="display:none;"></div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Doküman Editörü Veri Kurtarma Yardımcısı — <a href="https://halilselcuk.com" target="_blank" style="color:var(--primary-light); text-decoration:none;">Halil Selçuk</a>
+</footer>
+
+<script>
+// ========== GLOBALS ==========
+let recoveredDocuments = [];
+let allDocumentsBeforeDedup = []; // All docs from all phases before dedup (for "Tüm Bulunanlar")
+let allMarkerRegions = []; // Phase 6 GapContent marker region results (for "Eşleşmeyen Marker Hit'leri")
+let allMemoryTexts = []; // Every text fragment found in memory across all phases
+const CHUNK_SIZE = 64 * 1024 * 1024; // 64MB chunks
+const OVERLAP_SIZE = 512 * 1024; // 512KB overlap for pattern spanning chunks
+
+// ========== UI SETUP ==========
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const statusMsg = document.getElementById('statusMsg');
+const resultsContainer = document.getElementById('resultsContainer');
+const resultsContent = document.getElementById('resultsContent');
+const resultSummary = document.getElementById('resultSummary');
+const exportAllBar = document.getElementById('exportAllBar');
+
+// Drag & Drop
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+// ========== BYTE PATTERN UTILITIES ==========
+function encodeUTF8(str) {
+    return new TextEncoder().encode(str);
+}
+
+function encodeUTF16LE(str) {
+    const bytes = new Uint8Array(str.length * 2);
+    for (let i = 0; i < str.length; i++) {
+        const code = str.charCodeAt(i);
+        bytes[i * 2] = code & 0xFF;
+        bytes[i * 2 + 1] = (code >> 8) & 0xFF;
+    }
+    return bytes;
+}
+
+function decodeUTF8(bytes) {
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+}
+
+/**
+ * Search for a byte pattern in a Uint8Array.
+ * Returns array of offsets where pattern was found.
+ */
+function findPattern(data, pattern, maxResults = 1000) {
+    const results = [];
+    const dataLen = data.length;
+    const patLen = pattern.length;
+    if (patLen === 0 || dataLen < patLen) return results;
+
+    outer:
+    for (let i = 0; i <= dataLen - patLen; i++) {
+        if (data[i] !== pattern[0]) continue;
+        for (let j = 1; j < patLen; j++) {
+            if (data[i + j] !== pattern[j]) continue outer;
+        }
+        results.push(i);
+        if (results.length >= maxResults) break;
+    }
+    return results;
+}
+
+/**
+ * Find the first occurrence of a pattern starting from a given offset.
+ */
+function findPatternFrom(data, pattern, startOffset) {
+    const dataLen = data.length;
+    const patLen = pattern.length;
+    outer:
+    for (let i = startOffset; i <= dataLen - patLen; i++) {
+        if (data[i] !== pattern[0]) continue;
+        for (let j = 1; j < patLen; j++) {
+            if (data[i + j] !== pattern[j]) continue outer;
+        }
+        return i;
+    }
+    return -1;
+}
+
+// ========== MAIN PROCESSING ==========
+async function handleFile(file) {
+    if (!file.name.toLowerCase().endsWith('.dmp')) {
+        alert('Lütfen bir .DMP dosyası seçin.');
+        return;
+    }
+
+    recoveredDocuments = [];
+    allDocumentsBeforeDedup = [];
+    allMarkerRegions = [];
+    allMemoryTexts = [];
+    resultsContainer.classList.remove('active');
+    progressContainer.classList.add('active');
+    updateProgress(0, 'Dosya okunuyor...');
+
+    try {
+        await processFile(file);
+        showResults();
+    } catch (err) {
+        console.error(err);
+        updateProgress(100, '❌ Hata: ' + err.message);
+    }
+}
+
+async function processFile(file) {
+    const fileSize = file.size;
+    const templateStartPattern = encodeUTF8('<template format_id=');
+    const templateEndPattern = encodeUTF8('</template>');
+    const pkSignature = new Uint8Array([0x50, 0x4B, 0x03, 0x04]);
+    const contentXmlNameBytes = encodeUTF8('content.xml');
+
+    // Phase 1: Find all markers with chunked reading
+    updateProgress(0, 'Bellek dökümü taranıyor... (İmzalar aranıyor)');
+
+    let templateStarts = [];   // Global file offsets where <template format_id= found
+    let templateEnds = [];     // Global file offsets where </template> found
+    let pkContentXmlOffsets = []; // PK local headers with content.xml filename
+
+    let chunkIndex = 0;
+    const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+
+    for (let offset = 0; offset < fileSize; offset += CHUNK_SIZE) {
+        chunkIndex++;
+        // Add overlap from previous chunk to catch patterns spanning boundaries
+        const sliceStart = Math.max(0, offset - (offset > 0 ? OVERLAP_SIZE : 0));
+        const sliceEnd = Math.min(fileSize, offset + CHUNK_SIZE);
+
+        const blob = file.slice(sliceStart, sliceEnd);
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
+        const pct = Math.round((offset / fileSize) * 18);
+        updateProgress(pct, `Faz 1: Taranıyor... (Parça ${chunkIndex}/${totalChunks}) — ${formatSize(offset)} / ${formatSize(fileSize)}`);
+
+        // Find <template format_id= markers
+        const tStarts = findPattern(data, templateStartPattern);
+        for (const pos of tStarts) {
+            templateStarts.push(sliceStart + pos);
+        }
+
+        // Find </template> markers
+        const tEnds = findPattern(data, templateEndPattern);
+        for (const pos of tEnds) {
+            templateEnds.push(sliceStart + pos);
+        }
+
+        // Find PK\x03\x04 local file headers with content.xml filename
+        const pkHits = findPattern(data, pkSignature, 5000);
+        for (const pos of pkHits) {
+            // Verify filename is "content.xml": fnameLen at offset+26, filename at offset+30
+            if (pos + 30 + 11 <= data.length) {
+                const fnameLen = data[pos + 26] | (data[pos + 27] << 8);
+                if (fnameLen === 11) {
+                    let isContentXml = true;
+                    for (let j = 0; j < 11; j++) {
+                        if (data[pos + 30 + j] !== contentXmlNameBytes[j]) {
+                            isContentXml = false;
+                            break;
+                        }
+                    }
+                    if (isContentXml) {
+                        pkContentXmlOffsets.push(sliceStart + pos);
+                    }
+                }
+            }
+        }
+
+        // Allow UI to breathe
+        await sleep(10);
+    }
+
+    // Sort all offsets
+    templateStarts.sort((a, b) => a - b);
+    templateEnds.sort((a, b) => a - b);
+    // Deduplicate
+    templateStarts = [...new Set(templateStarts)];
+    templateEnds = [...new Set(templateEnds)];
+
+    pkContentXmlOffsets.sort((a, b) => a - b);
+    pkContentXmlOffsets = [...new Set(pkContentXmlOffsets)];
+
+    console.log('Template starts:', templateStarts.length, templateStarts);
+    console.log('Template ends:', templateEnds.length, templateEnds);
+    console.log('PK content.xml entries:', pkContentXmlOffsets.length, pkContentXmlOffsets);
+
+    updateProgress(18, `Bulunan imzalar: ${templateStarts.length} başlangıç, ${templateEnds.length} bitiş, ${pkContentXmlOffsets.length} sıkıştırılmış UDF`);
+    await sleep(100);
+
+    // Phase 2: Match template start/end pairs and extract content
+    // For each template start, find the nearest template end after it
+    // Filter to keep only "reasonable" sizes (> 100 bytes, < 10MB)
+    const pairs = matchTemplatePairs(templateStarts, templateEnds);
+    console.log('Matched pairs:', pairs);
+
+    updateProgress(19, `${pairs.length} olası doküman bulundu. İçerikler ayıklanıyor...`);
+
+    // Phase 3: Extract each document
+    for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+        const pct = 19 + Math.round(((i + 1) / pairs.length) * 3);
+        updateProgress(pct, `Faz 3: Doküman ${i + 1}/${pairs.length} ayıklanıyor...`);
+
+        const endLen = templateEndPattern.length; // '</template>'.length = 11
+
+        // Read the template XML from file
+        // Only read up to pair.end + endLen (the matched </template> end)
+        const readEnd = pair.end + endLen;
+        const templateBlob = file.slice(pair.start, readEnd);
+        const templateBuffer = await templateBlob.arrayBuffer();
+        let templateXml = decodeUTF8(new Uint8Array(templateBuffer));
+
+        // CRITICAL: Trim at the FIRST </template> to avoid including memory garbage
+        const firstEndIdx = templateXml.indexOf('</template>');
+        if (firstEndIdx < 0) continue; // No valid end found
+        templateXml = templateXml.substring(0, firstEndIdx + '</template>'.length);
+
+        // Ensure it starts with <template
+        const tmplStartIdx = templateXml.indexOf('<template');
+        if (tmplStartIdx < 0) continue; // No valid start
+        if (tmplStartIdx > 0) {
+            templateXml = templateXml.substring(tmplStartIdx);
+        }
+
+        // Validate: must contain expected structure and no binary garbage
+        if (!templateXml.includes('<content>') || !templateXml.includes('</template>')) {
+            continue;
+        }
+
+        // Reject if it contains null bytes or replacement chars (binary data leaked in)
+        if (templateXml.includes('\u0000') || templateXml.includes('\uFFFD')) {
+            console.warn(`Doc ${i+1}: Skipped — contains binary garbage`);
+            continue;
+        }
+
+        // Extract CDATA text content
+        let textContent = '';
+        const cdataStart = templateXml.indexOf('<![CDATA[');
+        const cdataEnd = templateXml.indexOf(']]>');
+        if (cdataStart >= 0 && cdataEnd > cdataStart) {
+            textContent = templateXml.substring(cdataStart + 9, cdataEnd);
+        }
+
+        // Extract format_id
+        let formatId = '1.8';
+        const fmtMatch = templateXml.match(/format_id="([^"]+)"/);
+        if (fmtMatch) formatId = fmtMatch[1];
+
+        // Use default documentproperties
+        let docPropsXml = buildDefaultDocProps();
+
+        // Extract webID if present
+        let webId = '';
+        const webIdMatch = templateXml.match(/<webID\s+id="([^"]*)"[^>]*>/);
+        if (webIdMatch) webId = webIdMatch[1];
+
+        // Build full content.xml — match original UDF format exactly:
+        // <?xml ...?> SPACE LF LF <template...>...LF LF </template> LF
+        const contentXml = '<?xml version="1.0" encoding="UTF-8" ?> \n\n' + templateXml + '\n';
+
+        recoveredDocuments.push({
+            index: i + 1,
+            contentXml: contentXml,
+            docPropsXml: docPropsXml,
+            textContent: textContent,
+            formatId: formatId,
+            webId: webId,
+            size: templateXml.length,
+            offsetStart: pair.start,
+            offsetEnd: pair.end,
+            sourcePhase: 'Faz 3'
+        });
+
+        // Track found text
+        if (textContent.trim().length > 0) {
+            allMemoryTexts.push({ text: textContent, offset: pair.start, source: 'Faz 3', encoding: 'UTF-8 Template CDATA', length: textContent.length });
+        }
+
+        await sleep(10);
+    }
+
+    // Phase 4: Extract compressed UDF entries found as PK ZIP files in memory
+    if (pkContentXmlOffsets.length > 0) {
+        updateProgress(22, `${pkContentXmlOffsets.length} sıkıştırılmış UDF dosyası bulundu. Çıkartılıyor...`);
+        await extractCompressedUDFs(file, pkContentXmlOffsets);
+    }
+
+    // Phase 5a: Search for template XML as UTF-16LE
+    // Java Strings in the heap (the full <template...>...</template> as char[])
+    updateProgress(26, 'Faz 5a: UTF-16LE bellek taraması başlıyor...');
+    console.log('[Faz5a] UTF-16LE template taraması yapılıyor...');
+    await searchUTF16Templates(file);
+    console.log(`[Faz5a] Tamamlandı. Bulunan doküman: ${recoveredDocuments.length}`);
+
+    // Phase 5b: Search for unsaved content in Java's UTF-16LE heap
+    // UYAP keeps the editor text in Java Swing's GapContent (char[] buffer).
+    // When the app freezes before saving, the latest text is only in this buffer.
+    {
+        const beforeCount = recoveredDocuments.length;
+        updateProgress(44, 'Faz 5b: Kaydedilmemiş içerik aranıyor (UTF-16LE tarama)...');
+        console.log(`[Faz5b] Başlıyor. Mevcut doküman sayısı: ${beforeCount}`);
+        await searchUnsavedContent(file);
+        const afterCount = recoveredDocuments.length;
+        const newDocs = afterCount - beforeCount;
+        console.log(`[Faz5b] Tamamlandı. Yeni doküman: ${newDocs} (toplam: ${afterCount})`);
+        if (newDocs > 0) {
+            updateProgress(62, `Faz 5b: ${newDocs} kaydedilmemiş içerik kurtarıldı!`);
+        } else {
+            updateProgress(62, 'Faz 5b: Kaydedilmemiş ek içerik bulunamadı.');
+        }
+        await sleep(300);
+    }
+
+    // Phase 6: Search for CDATA blocks and large readable text buffers
+    // in both UTF-8 and UTF-16LE
+    updateProgress(62, 'Faz 6: CDATA blokları ve metin tamponları aranıyor...');
+    console.log('[Faz6] CDATA/metin taraması başlıyor...');
+    await searchRawTextContent(file);
+    console.log(`[Faz6] Tamamlandı. Bulunan doküman: ${recoveredDocuments.length}`);
+    if (recoveredDocuments.length > 0) {
+        updateProgress(96, `Faz 6: ${recoveredDocuments.length} metin içeriği kurtarıldı!`);
+    } else {
+        updateProgress(96, 'Faz 6: Kurtarılabilir içerik bulunamadı.');
+    }
+    await sleep(300);
+
+    // Save all documents before dedup for "Tüm Bulunanlar" display
+    allDocumentsBeforeDedup = recoveredDocuments.map(d => ({...d}));
+
+    // Deduplicate by content similarity
+    recoveredDocuments = deduplicateDocuments(recoveredDocuments);
+
+    updateProgress(97, `${recoveredDocuments.length} benzersiz doküman kurtarıldı. Sonuçlar hazırlanıyor...`);
+    await sleep(200);
+    updateProgress(100, '✅ Tarama tamamlandı!');
+}
+
+function matchTemplatePairs(starts, ends) {
+    const pairs = [];
+
+    // Sort ends for efficient lookup
+    const sortedEnds = [...ends].sort((a, b) => a - b);
+
+    for (const start of starts) {
+        // Find the CLOSEST </template> end after this start
+        // Each start independently finds its nearest end (no usedEnds tracking)
+        // This prevents a distant end being assigned when the nearest is "taken"
+        let bestEnd = null;
+
+        for (const end of sortedEnds) {
+            if (end <= start) continue;
+
+            const size = end - start;
+            // Template should be at least 200 bytes and less than 2MB
+            if (size < 200) continue;
+            if (size > 2 * 1024 * 1024) break; // sorted, so all subsequent are bigger
+
+            bestEnd = end;
+            break; // First valid end is closest since sorted
+        }
+
+        if (bestEnd !== null) {
+            pairs.push({ start, end: bestEnd, size: bestEnd - start });
+        }
+    }
+
+    // Filter out pairs that are very close to each other (memory copies)
+    // Keep only the largest version of near-duplicates
+    const filtered = [];
+    pairs.sort((a, b) => a.start - b.start);
+
+    for (const pair of pairs) {
+        let merged = false;
+        for (let i = 0; i < filtered.length; i++) {
+            // If starts are within 100KB of each other, consider them copies
+            if (Math.abs(pair.start - filtered[i].start) < 100 * 1024) {
+                // Keep the larger one
+                if (pair.size > filtered[i].size) {
+                    filtered[i] = pair;
+                }
+                merged = true;
+                break;
+            }
+        }
+        if (!merged) {
+            filtered.push(pair);
+        }
+    }
+
+    return filtered;
+}
+
+function buildDefaultDocProps() {
+    // Use CRLF line endings to match Java's Properties XML output
+    return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\r\n' +
+           '<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">\r\n' +
+           '<properties>\r\n' +
+           '</properties>\r\n';
+}
+
+function deduplicateDocuments(docs) {
+    // Deduplicate based on text content + webID + source phase
+    // so outputs from different phases remain visible.
+    const unique = [];
+    for (const doc of docs) {
+        const textSample = doc.textContent.substring(0, 500).trim();
+        const phase = doc.sourcePhase || 'Bilinmiyor';
+        const fingerprint = textSample + '|' + doc.webId + '|' + phase;
+        let isDuplicate = false;
+
+        for (let i = 0; i < unique.length; i++) {
+            const existing = unique[i];
+            const existingSample = existing.textContent.substring(0, 500).trim();
+            const existingPhase = existing.sourcePhase || 'Bilinmiyor';
+            const existingFingerprint = existingSample + '|' + existing.webId + '|' + existingPhase;
+
+            if (textSample === existingSample || fingerprint === existingFingerprint) {
+                // Keep the larger one (more complete)
+                if (doc.size > existing.size) {
+                    unique[i] = doc;
+                }
+                isDuplicate = true;
+                break;
+            }
+        }
+        if (!isDuplicate && doc.textContent.trim().length > 0) {
+            unique.push(doc);
+        }
+    }
+    // Re-index
+    unique.forEach((d, i) => d.index = i + 1);
+    return unique;
+}
+
+// ========== ZIP CREATION (UDF) ==========
+async function createUDF(contentXml, docPropsXml) {
+    // Create a valid ZIP file containing content.xml and documentproperties.xml
+    // Using the Deflate compression via CompressionStream API (or store if unavailable)
+
+    const contentBytes = encodeUTF8(contentXml);
+    const docPropsBytes = encodeUTF8(docPropsXml);
+
+    let contentCompressed, docPropsCompressed;
+    let contentMethod, docPropsMethod;
+
+    try {
+        contentCompressed = await deflateData(contentBytes);
+        docPropsCompressed = await deflateData(docPropsBytes);
+        contentMethod = 8; // Deflate
+        docPropsMethod = 8;
+    } catch (e) {
+        // Fallback to STORE (no compression)
+        contentCompressed = contentBytes;
+        docPropsCompressed = docPropsBytes;
+        contentMethod = 0;
+        docPropsMethod = 0;
+    }
+
+    const entries = [
+        {
+            name: 'content.xml',
+            data: contentBytes,
+            compressed: contentCompressed,
+            method: contentMethod
+        },
+        {
+            name: 'documentproperties.xml',
+            data: docPropsBytes,
+            compressed: docPropsCompressed,
+            method: docPropsMethod
+        }
+    ];
+
+    return buildZip(entries);
+}
+
+async function deflateData(data) {
+    // Use raw deflate (not gzip, not zlib) for ZIP compatibility
+    if (typeof CompressionStream === 'undefined') {
+        throw new Error('CompressionStream not available');
+    }
+
+    // CompressionStream('deflate-raw') gives raw deflate
+    const cs = new CompressionStream('deflate-raw');
+    const writer = cs.writable.getWriter();
+    const reader = cs.readable.getReader();
+
+    const chunks = [];
+    const readPromise = (async () => {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+    })();
+
+    writer.write(data);
+    writer.close();
+    await readPromise;
+
+    let totalLen = 0;
+    for (const c of chunks) totalLen += c.length;
+    const result = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const c of chunks) {
+        result.set(c, offset);
+        offset += c.length;
+    }
+    return result;
+}
+
+async function inflateData(compressedData) {
+    if (typeof DecompressionStream === 'undefined') {
+        throw new Error('DecompressionStream not available');
+    }
+
+    const ds = new DecompressionStream('deflate-raw');
+    const writer = ds.writable.getWriter();
+    const reader = ds.readable.getReader();
+
+    const chunks = [];
+    const readPromise = (async () => {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+    })();
+
+    writer.write(compressedData);
+    writer.close();
+    await readPromise;
+
+    let totalLen = 0;
+    for (const c of chunks) totalLen += c.length;
+    const result = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const c of chunks) {
+        result.set(c, offset);
+        offset += c.length;
+    }
+    return result;
+}
+
+/**
+ * Extract compressed UDF files embedded as PK ZIP entries in the DMP.
+ * Each entry is a PK local file header with content.xml, followed by
+ * deflated data, followed by a PK\x07\x08 data descriptor.
+ */
+async function extractCompressedUDFs(file, offsets) {
+    for (let i = 0; i < offsets.length; i++) {
+        const pkOffset = offsets[i];
+        const pct = 22 + Math.round(((i + 1) / offsets.length) * 4);
+        updateProgress(pct, `Faz 4: Sıkıştırılmış UDF ${i + 1}/${offsets.length} çıkartılıyor...`);
+
+        try {
+            // Read enough data: header + up to 2MB compressed data + descriptor
+            const readSize = Math.min(2 * 1024 * 1024 + 256, file.size - pkOffset);
+            if (readSize < 50) continue;
+
+            const blob = file.slice(pkOffset, pkOffset + readSize);
+            const buffer = await blob.arrayBuffer();
+            const data = new Uint8Array(buffer);
+
+            // Verify PK\x03\x04 signature
+            if (data[0] !== 0x50 || data[1] !== 0x4B || data[2] !== 0x03 || data[3] !== 0x04) continue;
+
+            const method = data[8] | (data[9] << 8);
+            const fnameLen = data[26] | (data[27] << 8);
+            const extraLen = data[28] | (data[29] << 8);
+            const dataStart = 30 + fnameLen + extraLen;
+
+            if (dataStart >= data.length) continue;
+
+            // Find data descriptor PK\x07\x08 and verify compressed size matches position
+            let descPos = -1;
+            for (let j = dataStart; j <= data.length - 16; j++) {
+                if (data[j] === 0x50 && data[j+1] === 0x4B && data[j+2] === 0x07 && data[j+3] === 0x08) {
+                    const dv = new DataView(buffer, j + 4, 12);
+                    const compSz = dv.getUint32(4, true);
+                    if (compSz === j - dataStart) {
+                        descPos = j;
+                        break;
+                    }
+                }
+            }
+
+            if (descPos === -1) continue;
+
+            const compressedData = data.slice(dataStart, descPos);
+
+            let xmlStr;
+            if (method === 8) {
+                // Deflate — decompress
+                const decompressed = await inflateData(compressedData);
+                xmlStr = decodeUTF8(decompressed);
+            } else if (method === 0) {
+                // Store — no compression
+                xmlStr = decodeUTF8(compressedData);
+            } else {
+                continue;
+            }
+
+            // Validate: must contain <template and </template>
+            if (!xmlStr.includes('<template') || !xmlStr.includes('</template>')) continue;
+
+            // Extract template XML
+            const tmplStartIdx = xmlStr.indexOf('<template');
+            const tmplEndIdx = xmlStr.indexOf('</template>');
+            if (tmplStartIdx < 0 || tmplEndIdx < 0) continue;
+
+            let templateXml = xmlStr.substring(tmplStartIdx, tmplEndIdx + '</template>'.length);
+
+            // Reject binary garbage
+            if (templateXml.includes('\u0000') || templateXml.includes('\uFFFD')) continue;
+
+            // Must have content element
+            if (!templateXml.includes('<content>') && !templateXml.includes('<content ')) continue;
+
+            // Extract CDATA text content
+            let textContent = '';
+            const cdataStart = templateXml.indexOf('<![CDATA[');
+            const cdataEnd = templateXml.indexOf(']]>');
+            if (cdataStart >= 0 && cdataEnd > cdataStart) {
+                textContent = templateXml.substring(cdataStart + 9, cdataEnd);
+            }
+
+            // Extract format_id
+            let formatId = '1.8';
+            const fmtMatch = templateXml.match(/format_id="([^"]+)"/);
+            if (fmtMatch) formatId = fmtMatch[1];
+
+            let docPropsXml = buildDefaultDocProps();
+
+            let webId = '';
+            const webIdMatch = templateXml.match(/<webID\s+id="([^"]*)"[^>]*>/);
+            if (webIdMatch) webId = webIdMatch[1];
+
+            const contentXml = '<?xml version="1.0" encoding="UTF-8" ?> \n\n' + templateXml + '\n';
+
+            recoveredDocuments.push({
+                index: recoveredDocuments.length + 1,
+                contentXml: contentXml,
+                docPropsXml: docPropsXml,
+                textContent: textContent,
+                formatId: formatId,
+                webId: webId,
+                size: templateXml.length,
+                offsetStart: pkOffset,
+                offsetEnd: pkOffset + descPos + 16,
+                sourcePhase: 'Faz 4'
+            });
+
+            // Track found text
+            if (textContent.trim().length > 0) {
+                allMemoryTexts.push({ text: textContent, offset: pkOffset, source: 'Faz 4', encoding: 'Sıkıştırılmış UDF CDATA', length: textContent.length });
+            }
+
+        } catch (e) {
+            console.warn(`PK at offset ${pkOffset}: extraction failed —`, e);
+        }
+
+        await sleep(10);
+    }
+}
+
+/**
+ * Build a minimal template XML that UYAP Document Editor can open.
+ * Used when we recover raw text content without the original template structure.
+ */
+function buildMinimalTemplate(textContent) {
+    const textLen = textContent.length;
+    return '<template format_id="1.8" >\n' +
+           '<content><![CDATA[' + textContent + '\n]]></content>' +
+           '<properties><pageFormat mediaSizeName="1" leftMargin="42.525000000000006" rightMargin="42.525000000000006" topMargin="42.525000000000006" bottomMargin="42.52500000000006" paperOrientation="1" headerFOffset="20.0" footerFOffset="20.0" /></properties>' +
+           '<styles><style name="default" description="Geçerli" family="Dialog" size="12" bold="false" italic="false" FONT_ATTRIBUTE_KEY="javax.swing.plaf.FontUIResource[family=Dialog,name=Dialog,style=plain,size=12]" foreground="-13421773" />' +
+           '<style name="hvl-default" family="Times New Roman" size="12" description="Gövde" /></styles>\n' +
+           '<elements resolver="hvl-default" >\n' +
+           '<paragraph><content startOffset="0" length="' + (textLen + 1) + '" /></paragraph>\n' +
+           '</elements>\n\n</template>';
+}
+
+/**
+ * Phase 6: Last resort text recovery.
+ * Searches for CDATA blocks in both UTF-8 and UTF-16LE,
+ * and also scans for large readable UTF-16LE text buffers (Java GapContent char[]).
+ * Wraps found text in a minimal template to produce valid UDF output.
+ */
+async function searchRawTextContent(file) {
+    const fileSize = file.size;
+    const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+
+    // Patterns to search for
+    const cdataOpenUTF8 = encodeUTF8('<![CDATA[');
+    const cdataCloseUTF8 = encodeUTF8(']]>');
+    const cdataOpenU16 = encodeUTF16LE('<![CDATA[');
+    const cdataCloseU16 = encodeUTF16LE(']]>');
+    const contentOpenU16 = encodeUTF16LE('<content>');
+
+    const cdataHitsUTF8 = [];
+    const cdataHitsU16 = [];
+    const contentHitsU16 = [];
+    let chunkNum = 0;
+
+    // Scan for CDATA and <content> markers
+    for (let offset = 0; offset < fileSize; offset += CHUNK_SIZE) {
+        chunkNum++;
+        const sliceStart = Math.max(0, offset - (offset > 0 ? OVERLAP_SIZE : 0));
+        const sliceEnd = Math.min(fileSize, offset + CHUNK_SIZE);
+        const blob = file.slice(sliceStart, sliceEnd);
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
+        const pct = 62 + Math.round((offset / fileSize) * 18);
+        updateProgress(pct, `Faz 6: CDATA/metin taraması... (${chunkNum}/${totalChunks})`);
+
+        // UTF-8 CDATA
+        const u8Hits = findPattern(data, cdataOpenUTF8, 500);
+        for (const pos of u8Hits) cdataHitsUTF8.push(sliceStart + pos);
+
+        // UTF-16LE CDATA
+        const u16Hits = findPattern(data, cdataOpenU16, 500);
+        for (const pos of u16Hits) cdataHitsU16.push(sliceStart + pos);
+
+        // UTF-16LE <content>
+        const cHits = findPattern(data, contentOpenU16, 500);
+        for (const pos of cHits) contentHitsU16.push(sliceStart + pos);
+
+        await sleep(5);
+    }
+
+    const uniqueCdataUTF8 = [...new Set(cdataHitsUTF8)].sort((a, b) => a - b);
+    const uniqueCdataU16 = [...new Set(cdataHitsU16)].sort((a, b) => a - b);
+    const uniqueContentU16 = [...new Set(contentHitsU16)].sort((a, b) => a - b);
+
+    console.log(`[Faz6] CDATA hits: UTF-8=${uniqueCdataUTF8.length}, UTF-16LE=${uniqueCdataU16.length}, <content> UTF-16LE=${uniqueContentU16.length}`);
+
+    const recoveredTexts = []; // {text, offset, encoding}
+
+    // Strategy 1: Extract CDATA content from UTF-8 blocks
+    for (const hitOff of uniqueCdataUTF8) {
+        try {
+            // Read up to 2MB after <![CDATA[
+            const readLen = Math.min(2 * 1024 * 1024, fileSize - hitOff);
+            const blob = file.slice(hitOff, hitOff + readLen);
+            const dataBuf = await blob.arrayBuffer();
+            const data = new Uint8Array(dataBuf);
+
+            // Find ]]> closing
+            const closePos = findPatternFrom(data, cdataCloseUTF8, 9);
+            if (closePos < 0) continue;
+
+            const cdataBytes = data.slice(9, closePos); // skip '<![CDATA['
+            const text = decodeUTF8(cdataBytes).trim();
+
+            if (text.length < 20) continue;
+            if (text.includes('\u0000') || text.includes('\uFFFD')) continue;
+
+            // Check readability: at least 50% printable/whitespace
+            const printable = [...text].filter(c => {
+                const code = c.charCodeAt(0);
+                return (code >= 32 && code < 127) || code === 9 || code === 10 || code === 13 || (code >= 0xC0 && code <= 0x024F) || (code >= 0x0400 && code <= 0x04FF);
+            }).length;
+            if (printable < text.length * 0.5) continue;
+
+            console.log(`[Faz6] UTF-8 CDATA offset=${hitOff}: "${text.substring(0, 60).replace(/\n/g, '\\n')}" (${text.length} chars)`);
+            recoveredTexts.push({ text, offset: hitOff, encoding: 'UTF-8 CDATA' });
+            allMemoryTexts.push({ text, offset: hitOff, source: 'Faz 6', encoding: 'UTF-8 CDATA', length: text.length });
+        } catch (e) {
+            console.warn(`[Faz6] UTF-8 CDATA offset=${hitOff} error:`, e);
+        }
+    }
+
+    // Strategy 2: Extract CDATA content from UTF-16LE blocks
+    for (const hitOff of uniqueCdataU16) {
+        try {
+            const cdataOpenLen = 9 * 2; // '<![CDATA[' = 9 chars * 2 bytes
+            const readLen = Math.min(4 * 1024 * 1024, fileSize - hitOff);
+            const blob = file.slice(hitOff, hitOff + readLen);
+            const dataBuf = await blob.arrayBuffer();
+            const data = new Uint8Array(dataBuf);
+
+            // Find ]]> closing in UTF-16LE
+            const closePos = findPatternFrom(data, cdataCloseU16, cdataOpenLen);
+            if (closePos < 0) continue;
+
+            // Decode UTF-16LE between CDATA markers
+            const textData = data.slice(cdataOpenLen, closePos);
+            const charCount = Math.floor(textData.length / 2);
+            let text = '';
+            for (let i = 0; i < charCount; i++) {
+                text += String.fromCharCode(textData[i * 2] | (textData[i * 2 + 1] << 8));
+            }
+            text = text.trim();
+
+            if (text.length < 20) continue;
+            if (text.indexOf('\u0000') >= 0) continue;
+
+            console.log(`[Faz6] UTF-16LE CDATA offset=${hitOff}: "${text.substring(0, 60).replace(/\n/g, '\\n')}" (${text.length} chars)`);
+            recoveredTexts.push({ text, offset: hitOff, encoding: 'UTF-16LE CDATA' });
+            allMemoryTexts.push({ text, offset: hitOff, source: 'Faz 6', encoding: 'UTF-16LE CDATA', length: text.length });
+        } catch (e) {
+            console.warn(`[Faz6] UTF-16LE CDATA offset=${hitOff} error:`, e);
+        }
+    }
+
+    // Strategy 3: Extract text from UTF-16LE <content><![CDATA[...]]></content> blocks
+    // (content tag without full template wrapper)
+    for (const hitOff of uniqueContentU16) {
+        try {
+            const contentOpenLen = '<content>'.length * 2;
+            const readLen = Math.min(4 * 1024 * 1024, fileSize - hitOff);
+            const blob = file.slice(hitOff, hitOff + readLen);
+            const dataBuf = await blob.arrayBuffer();
+            const data = new Uint8Array(dataBuf);
+
+            // Check if <![CDATA[ follows immediately
+            const cdataPos = findPatternFrom(data, cdataOpenU16, contentOpenLen);
+            if (cdataPos < 0 || cdataPos > contentOpenLen + 20) continue; // must be close
+
+            const cdataStart = cdataPos + 9 * 2;
+            const closePos = findPatternFrom(data, cdataCloseU16, cdataStart);
+            if (closePos < 0) continue;
+
+            const textData = data.slice(cdataStart, closePos);
+            const charCount = Math.floor(textData.length / 2);
+            let text = '';
+            for (let i = 0; i < charCount; i++) {
+                text += String.fromCharCode(textData[i * 2] | (textData[i * 2 + 1] << 8));
+            }
+            text = text.trim();
+
+            if (text.length < 20) continue;
+            if (text.indexOf('\u0000') >= 0) continue;
+
+            console.log(`[Faz6] UTF-16LE <content> offset=${hitOff}: "${text.substring(0, 60).replace(/\n/g, '\\n')}" (${text.length} chars)`);
+            recoveredTexts.push({ text, offset: hitOff, encoding: 'UTF-16LE content' });
+            allMemoryTexts.push({ text, offset: hitOff, source: 'Faz 6', encoding: 'UTF-16LE content', length: text.length });
+        } catch (e) {
+            console.warn(`[Faz6] UTF-16LE <content> offset=${hitOff} error:`, e);
+        }
+    }
+
+    // Strategy 4: Blind search for large readable UTF-16LE text buffers
+    // Scan for Java GapContent char[] arrays with Turkish/Latin text
+    console.log('[Faz6] GapContent char[] tampon taraması yapılıyor...');
+    await searchGapContentBuffers(file, recoveredTexts);
+
+    // Deduplicate recovered texts by content similarity
+    const uniqueTexts = [];
+    for (const item of recoveredTexts) {
+        const sample = item.text.substring(0, 200);
+        const isDup = uniqueTexts.some(u => u.text.substring(0, 200) === sample);
+        if (!isDup) {
+            uniqueTexts.push(item);
+        }
+    }
+
+    console.log(`[Faz6] Benzersiz metin: ${uniqueTexts.length}`);
+
+    // Create documents from recovered texts
+    for (const item of uniqueTexts) {
+        const templateXml = buildMinimalTemplate(item.text);
+        const contentXml = '<?xml version="1.0" encoding="UTF-8" ?> \n\n' + templateXml + '\n';
+
+        recoveredDocuments.push({
+            index: recoveredDocuments.length + 1,
+            contentXml: contentXml,
+            docPropsXml: buildDefaultDocProps(),
+            textContent: item.text + '\n',
+            formatId: '1.8',
+            webId: '',
+            size: item.text.length,
+            offsetStart: item.offset,
+            offsetEnd: item.offset + item.text.length * 2,
+            sourcePhase: 'Faz 6',
+            unsavedRecovery: true
+        });
+
+        console.log(`[Faz6] Doküman oluşturuldu: "${item.text.substring(0, 60).replace(/\n/g, '\\n')}" (${item.text.length} chars, ${item.encoding})`);
+    }
+}
+
+/**
+ * Strategy 4 helper: Scan for large readable UTF-16LE text blocks in the DMP.
+ * Targets Java char[] buffers containing document text.
+ * Looks for Turkish-specific markers like "T.C.", "ADALET", tab chars, etc.
+ */
+async function searchGapContentBuffers(file, recoveredTexts) {
+    const fileSize = file.size;
+    const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+
+    // Search for common Turkish legal document patterns in UTF-16LE
+    const markerNames = ['T.C.', 'ADALET', 'Cumhuriyet', 'Mahkemesi', 'BAŞKANLIĞI', 'Başkanlığı', 'sanık', 'davacı', 'davalı', 'verildi', 'Sayı\\t', 'Konu\\t'];
+    const markers = [
+        encodeUTF16LE('T.C.'),
+        encodeUTF16LE('ADALET'),
+        encodeUTF16LE('Cumhuriyet'),
+        encodeUTF16LE('Mahkemesi'),
+        encodeUTF16LE('BAŞKANLIĞI'),
+        encodeUTF16LE('Başkanlığı'),
+        encodeUTF16LE('sanık'),
+        encodeUTF16LE('davacı'),
+        encodeUTF16LE('davalı'),
+        encodeUTF16LE('verildi'),
+        encodeUTF16LE('Sayı\t'),
+        encodeUTF16LE('Konu\t'),
+    ];
+
+    const markerHits = new Map(); // offset -> marker index
+    let chunkNum = 0;
+
+    for (let offset = 0; offset < fileSize; offset += CHUNK_SIZE) {
+        chunkNum++;
+        const sliceStart = Math.max(0, offset - (offset > 0 ? OVERLAP_SIZE : 0));
+        const sliceEnd = Math.min(fileSize, offset + CHUNK_SIZE);
+        const blob = file.slice(sliceStart, sliceEnd);
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
+        const pct = 80 + Math.round((offset / fileSize) * 16);
+        updateProgress(pct, `Faz 6: Metin tamponları taranıyor... (${chunkNum}/${totalChunks})`);
+
+        for (let m = 0; m < markers.length; m++) {
+            const hits = findPattern(data, markers[m], 200);
+            for (const pos of hits) {
+                const absOff = sliceStart + pos;
+                if (!markerHits.has(absOff)) {
+                    markerHits.set(absOff, m);
+                }
+            }
+        }
+
+        await sleep(5);
+    }
+
+    console.log(`[Faz6] Metin marker hit sayısı: ${markerHits.size}`);
+
+    if (markerHits.size === 0) return;
+
+    // Group nearby hits (within 256KB) to identify text buffer regions
+    const sortedOffsets = [...markerHits.keys()].sort((a, b) => a - b);
+    const regions = [];
+    let regionStart = sortedOffsets[0];
+    let regionEnd = sortedOffsets[0];
+
+    for (let i = 1; i < sortedOffsets.length; i++) {
+        if (sortedOffsets[i] - regionEnd < 256 * 1024) {
+            regionEnd = sortedOffsets[i];
+        } else {
+            regions.push({ start: regionStart, end: regionEnd });
+            regionStart = sortedOffsets[i];
+            regionEnd = sortedOffsets[i];
+        }
+    }
+    regions.push({ start: regionStart, end: regionEnd });
+
+    console.log(`[Faz6] Metin bölgeleri: ${regions.length}`);
+
+    // For each region, try to extract the full text buffer
+    for (const region of regions) {
+        // Collect marker names in this region
+        const regionMarkers = [];
+        for (const [off, mIdx] of markerHits.entries()) {
+            if (off >= region.start && off <= region.end) {
+                regionMarkers.push({ offset: off, name: markerNames[mIdx] });
+            }
+        }
+
+        let extractedText = '';
+        let absOffset = region.start;
+        let matched = false;
+        let rejectReason = '';
+
+        try {
+            // Scan backward from region start to find buffer beginning
+            const scanBackSize = Math.min(64 * 1024, region.start);
+            const regionReadEnd = Math.min(fileSize, region.end + 64 * 1024);
+            const readStart = region.start - scanBackSize;
+            const readLen = regionReadEnd - readStart;
+
+            if (readLen < 40 || readLen > 8 * 1024 * 1024) {
+                rejectReason = `Bölge boyutu uygun değil (${readLen} bytes)`;
+                allMarkerRegions.push({ region, markers: regionMarkers, text: '', textLength: 0, offset: absOffset, matched: false, reason: rejectReason });
+                continue;
+            }
+
+            const blob = file.slice(readStart, readStart + readLen);
+            const dataBuf = await blob.arrayBuffer();
+            const data = new Uint8Array(dataBuf);
+
+            // Decode as UTF-16LE
+            const charCount = Math.floor(data.length / 2);
+            const chars = new Array(charCount);
+            for (let i = 0; i < charCount; i++) {
+                chars[i] = data[i * 2] | (data[i * 2 + 1] << 8);
+            }
+
+            // Find the first marker position in our buffer
+            const markerInBuf = Math.floor(scanBackSize / 2);
+
+            // Scan backward to find start of readable text
+            let textStart = markerInBuf;
+            for (let i = markerInBuf - 1; i >= 0; i--) {
+                const c = chars[i];
+                if (c === 0) {
+                    textStart = i + 1;
+                    break;
+                }
+                if (c < 9 || (c > 13 && c < 32 && c !== 0x1F) || c === 0xFFFD) {
+                    textStart = i + 1;
+                    break;
+                }
+                textStart = i;
+            }
+
+            // Scan forward to find end of readable text
+            let textEnd = markerInBuf;
+            for (let i = markerInBuf; i < charCount; i++) {
+                const c = chars[i];
+                if (c === 0) break;
+                if (c < 9 || (c > 13 && c < 32 && c !== 0x1F) || c === 0xFFFD) break;
+                textEnd = i + 1;
+            }
+
+            // Also handle gap: check if there's readable text after a null gap
+            let afterGapText = '';
+            if (textEnd < charCount) {
+                // Find end of gap
+                let gapEnd = textEnd;
+                while (gapEnd < charCount && chars[gapEnd] === 0) gapEnd++;
+                if (gapEnd < charCount && gapEnd - textEnd >= 4) {
+                    // There might be after-gap text
+                    let ageStart = gapEnd;
+                    let ageEnd = gapEnd;
+                    for (let i = gapEnd; i < charCount; i++) {
+                        const c = chars[i];
+                        if (c === 0) break;
+                        if (c < 9 || (c > 13 && c < 32 && c !== 0x1F) || c === 0xFFFD) break;
+                        ageEnd = i + 1;
+                    }
+                    if (ageEnd > ageStart + 5) {
+                        for (let i = ageStart; i < ageEnd; i++) {
+                            afterGapText += String.fromCharCode(chars[i]);
+                        }
+                    }
+                }
+            }
+
+            // Build text
+            let text = '';
+            for (let i = textStart; i < textEnd; i++) {
+                text += String.fromCharCode(chars[i]);
+            }
+            text += afterGapText;
+            text = text.trim();
+            extractedText = text;
+            absOffset = readStart + textStart * 2;
+
+            if (text.length < 50) {
+                rejectReason = `Metin çok kısa (${text.length} karakter, min 50)`;
+                allMarkerRegions.push({ region, markers: regionMarkers, text: extractedText, textLength: text.length, offset: absOffset, matched: false, reason: rejectReason });
+                continue;
+            }
+
+            // Verify it's meaningful text (not random bytes)
+            const printable = [...text].filter(c => {
+                const code = c.charCodeAt(0);
+                return (code >= 32 && code <= 126) || code === 9 || code === 10 || code === 13 ||
+                       (code >= 0xC0 && code <= 0x024F) || // Latin extended
+                       (code >= 0x0400 && code <= 0x04FF) || // Cyrillic
+                       (code >= 0x011E && code <= 0x015F);   // Turkish specific
+            }).length;
+
+            if (printable < text.length * 0.6) {
+                console.log(`[Faz6] Region ${region.start}: readability too low (${printable}/${text.length})`);
+                rejectReason = `Okunabilirlik düşük (${printable}/${text.length} = %${Math.round(printable/text.length*100)})`;
+                allMarkerRegions.push({ region, markers: regionMarkers, text: extractedText, textLength: text.length, offset: absOffset, matched: false, reason: rejectReason });
+                continue;
+            }
+
+            console.log(`[Faz6] GapContent buffer offset=${absOffset}: "${text.substring(0, 80).replace(/\n/g, '\\n')}" (${text.length} chars)`);
+            recoveredTexts.push({ text, offset: absOffset, encoding: 'UTF-16LE GapContent' });
+            allMemoryTexts.push({ text, offset: absOffset, source: 'Faz 6', encoding: 'UTF-16LE GapContent (marker)', length: text.length });
+            matched = true;
+
+            // Store matched region
+            allMarkerRegions.push({ region, markers: regionMarkers, text: extractedText, textLength: text.length, offset: absOffset, matched: true, reason: '' });
+
+        } catch (e) {
+            console.warn(`[Faz6] Region ${region.start} error:`, e);
+            rejectReason = `Hata: ${e.message}`;
+            allMarkerRegions.push({ region, markers: regionMarkers, text: extractedText, textLength: extractedText.length, offset: absOffset, matched: false, reason: rejectReason });
+        }
+    }
+}
+
+/**
+ * Phase 5a: Blind UTF-16LE template search.
+ * When Phases 1-4 find nothing (no UTF-8 XML, no ZIP entries), the document
+ * data may only exist as Java String objects in the heap. Java stores Strings
+ * as char[] arrays in UTF-16LE. This function scans for <template format_id=
+ * and </template> patterns in UTF-16LE encoding to recover the full template XML.
+ */
+async function searchUTF16Templates(file) {
+    const fileSize = file.size;
+    const templateStartU16 = encodeUTF16LE('<template format_id=');
+    const templateEndU16 = encodeUTF16LE('</template>');
+    const cdataOpenU16 = encodeUTF16LE('<![CDATA[');
+
+    const startHits = [];
+    const endHits = [];
+    const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+    let chunkNum = 0;
+
+    for (let offset = 0; offset < fileSize; offset += CHUNK_SIZE) {
+        chunkNum++;
+        const sliceStart = Math.max(0, offset - (offset > 0 ? OVERLAP_SIZE : 0));
+        const sliceEnd = Math.min(fileSize, offset + CHUNK_SIZE);
+        const blob = file.slice(sliceStart, sliceEnd);
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
+        const pct = 26 + Math.round((offset / fileSize) * 18);
+        updateProgress(pct, `Faz 5a: UTF-16LE tarama... (${chunkNum}/${totalChunks})`);
+
+        const sHits = findPattern(data, templateStartU16, 500);
+        for (const pos of sHits) startHits.push(sliceStart + pos);
+
+        const eHits = findPattern(data, templateEndU16, 500);
+        for (const pos of eHits) endHits.push(sliceStart + pos);
+
+        await sleep(5);
+    }
+
+    const uniqueStarts = [...new Set(startHits)].sort((a, b) => a - b);
+    const uniqueEnds = [...new Set(endHits)].sort((a, b) => a - b);
+
+    console.log(`[Faz5a] UTF-16LE template starts: ${uniqueStarts.length}, ends: ${uniqueEnds.length}`);
+
+    // Match each start with nearest end
+    for (const start of uniqueStarts) {
+        // Find nearest </template> end after start, within 4MB
+        const end = uniqueEnds.find(e => e > start && (e - start) < 4 * 1024 * 1024);
+        if (!end) {
+            console.log(`[Faz5a] offset ${start}: no matching end found`);
+            continue;
+        }
+
+        // Read range: start to end + '</template>' in UTF-16LE (11 chars * 2 = 22 bytes)
+        const readLen = end - start + 22;
+        if (readLen < 200 || readLen > 8 * 1024 * 1024) {
+            console.log(`[Faz5a] offset ${start}: size ${readLen} out of range`);
+            continue;
+        }
+
+        const blob = file.slice(start, start + readLen);
+        const dataBuf = await blob.arrayBuffer();
+        const data = new Uint8Array(dataBuf);
+
+        // Decode UTF-16LE to string
+        const charCount = Math.floor(data.length / 2);
+        let templateXml = '';
+        for (let i = 0; i < charCount; i++) {
+            templateXml += String.fromCharCode(data[i * 2] | (data[i * 2 + 1] << 8));
+        }
+
+        // Trim at first </template>
+        const tmplEndIdx = templateXml.indexOf('</template>');
+        if (tmplEndIdx < 0) continue;
+        templateXml = templateXml.substring(0, tmplEndIdx + '</template>'.length);
+
+        // Validate structure
+        if (!templateXml.includes('<content>')) {
+            console.log(`[Faz5a] offset ${start}: no <content> found, skipping`);
+            continue;
+        }
+
+        // Reject binary garbage (null or replacement chars)
+        if (templateXml.includes('\u0000') || templateXml.includes('\uFFFD')) {
+            console.log(`[Faz5a] offset ${start}: contains binary garbage`);
+            continue;
+        }
+
+        // Extract text content from CDATA
+        let textContent = '';
+        const cdataStart = templateXml.indexOf('<![CDATA[');
+        const cdataEnd = templateXml.indexOf(']]>');
+        if (cdataStart >= 0 && cdataEnd > cdataStart) {
+            textContent = templateXml.substring(cdataStart + 9, cdataEnd);
+        }
+
+        // Extract format_id
+        let formatId = '1.8';
+        const fmtMatch = templateXml.match(/format_id="([^"]+)"/);
+        if (fmtMatch) formatId = fmtMatch[1];
+
+        // Extract webID
+        let webId = '';
+        const webIdMatch = templateXml.match(/<webID\s+id="([^"]*)"[^>]*>/);
+        if (webIdMatch) webId = webIdMatch[1];
+
+        const contentXml = '<?xml version="1.0" encoding="UTF-8" ?> \n\n' + templateXml + '\n';
+
+        recoveredDocuments.push({
+            index: recoveredDocuments.length + 1,
+            contentXml: contentXml,
+            docPropsXml: buildDefaultDocProps(),
+            textContent: textContent,
+            formatId: formatId,
+            webId: webId,
+            size: templateXml.length,
+            offsetStart: start,
+            offsetEnd: end,
+            sourcePhase: 'Faz 5a'
+        });
+
+        // Track found text
+        if (textContent.trim().length > 0) {
+            allMemoryTexts.push({ text: textContent, offset: start, source: 'Faz 5a', encoding: 'UTF-16LE Template CDATA', length: textContent.length });
+        }
+
+        console.log(`[Faz5a] UTF-16LE template kurtarıldı: offset=${start}, text="${textContent.substring(0, 60).replace(/\n/g, '\\n')}" (${textContent.length} chars)`);
+    }
+}
+
+/**
+ * Phase 5b: Search for unsaved document content in Java's UTF-16LE heap.
+ * UYAP's text editor (Swing JTextPane) stores text in a GapContent char[] buffer.
+ * When the app freezes before saving, the latest text only exists in this buffer
+ * as UTF-16LE (Java's internal char encoding), NOT in the template XML.
+ * This function finds those buffers and updates recovered documents with the
+ * most recent (unsaved) text content.
+ */
+async function searchUnsavedContent(file) {
+    const fileSize = file.size;
+
+    // Collect unique text prefixes from recovered documents
+    const searches = [];
+    const seenPrefixes = new Set();
+
+    for (const doc of recoveredDocuments) {
+        const text = doc.textContent.replace(/[\r\n]+$/, '');
+        if (text.length < 3) continue;
+
+        const prefix = text.substring(0, Math.min(8, text.length));
+        if (seenPrefixes.has(prefix)) continue;
+        seenPrefixes.add(prefix);
+
+        const pattern = encodeUTF16LE(prefix);
+        searches.push({
+            prefix: prefix,
+            pattern: pattern,
+            docs: recoveredDocuments.filter(d =>
+                d.textContent.replace(/[\r\n]+$/, '').startsWith(prefix)
+            )
+        });
+        console.log(`[Faz5] Arama: prefix="${prefix}" pattern=[${Array.from(pattern).map(b=>'0x'+b.toString(16).padStart(2,'0')).join(',')}] docCount=${searches[searches.length-1].docs.length}`);
+    }
+
+    if (searches.length === 0) {
+        console.log('[Faz5] Arama yok, çıkılıyor');
+        return;
+    }
+
+    // Scan file for UTF-16LE text prefixes
+    const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+    const hitsBySearch = searches.map(() => []);
+    let chunkNum = 0;
+
+    for (let offset = 0; offset < fileSize; offset += CHUNK_SIZE) {
+        chunkNum++;
+        const sliceStart = Math.max(0, offset - (offset > 0 ? OVERLAP_SIZE : 0));
+        const sliceEnd = Math.min(fileSize, offset + CHUNK_SIZE);
+        const blob = file.slice(sliceStart, sliceEnd);
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
+        const pct = 44 + Math.round((offset / fileSize) * 18);
+        updateProgress(pct, `Faz 5b: Kaydedilmemiş içerik aranıyor... (${chunkNum}/${totalChunks})`);
+
+        for (let s = 0; s < searches.length; s++) {
+            const hits = findPattern(data, searches[s].pattern, 5000);
+            if (hits.length > 0) {
+                console.log(`[Faz5] Chunk ${chunkNum} (offset ${sliceStart}): "${searches[s].prefix}" → ${hits.length} hit(s)`);
+            }
+            for (const pos of hits) {
+                hitsBySearch[s].push(sliceStart + pos);
+            }
+        }
+
+        await sleep(5);
+    }
+
+    // Process each search's hits
+    for (let s = 0; s < searches.length; s++) {
+        const hits = [...new Set(hitsBySearch[s])].sort((a, b) => a - b);
+        const search = searches[s];
+
+        console.log(`[Faz5] Arama "${search.prefix}": toplam ${hits.length} hit`);
+
+        let bestText = '';
+        let bestOffset = 0;
+
+        for (const hitOff of hits) {
+            try {
+                // Read Java char[] array length from 4 bytes before text
+                let arrayLen = 32768; // default fallback
+                if (hitOff >= 4) {
+                    const headerBlob = file.slice(hitOff - 4, hitOff + 4);
+                    const headerBuf = await headerBlob.arrayBuffer();
+                    const headerView = new DataView(headerBuf);
+                    const rawLen = headerView.getInt32(0, true);
+                    if (rawLen >= 16 && rawLen <= 4 * 1024 * 1024) {
+                        arrayLen = rawLen;
+                    }
+                }
+
+                // Read the char[] buffer data
+                const dataLen = Math.min(arrayLen * 2, fileSize - hitOff);
+                if (dataLen < 6) {
+                    console.log(`[Faz5]   offset ${hitOff}: dataLen too small (${dataLen})`);
+                    continue;
+                }
+
+                const dataBlob = file.slice(hitOff, hitOff + dataLen);
+                const dataBuf = await dataBlob.arrayBuffer();
+                const charData = new Uint8Array(dataBuf);
+
+                let extracted = extractGapBufferText(charData);
+
+                // Validate: must start with our prefix
+                if (!extracted.startsWith(search.prefix)) {
+                    console.log(`[Faz5]   offset ${hitOff}: prefix mismatch, got "${extracted.substring(0, 20).replace(/\n/g,'\\n')}"`);
+                    continue;
+                }
+
+                // Reject if contains null chars (binary garbage)
+                if (extracted.indexOf('\u0000') >= 0) {
+                    console.log(`[Faz5]   offset ${hitOff}: contains null char, rejected`);
+                    continue;
+                }
+
+                // Trim at CDATA/XML boundary: if the char[] holds full XML content,
+                // the user's actual text ends before ]]> or </content>
+                const cdataEndIdx = extracted.indexOf(']]>');
+                if (cdataEndIdx >= 0) {
+                    extracted = extracted.substring(0, cdataEndIdx);
+                }
+                const contentEndIdx = extracted.indexOf('</content>');
+                if (contentEndIdx >= 0) {
+                    extracted = extracted.substring(0, contentEndIdx);
+                }
+
+                // Strip trailing whitespace/newlines
+                extracted = extracted.replace(/[\r\n\s]+$/, '');
+
+                if (extracted.length === 0) {
+                    console.log(`[Faz5]   offset ${hitOff}: empty after XML boundary trimming`);
+                    continue;
+                }
+
+                // Reject high proportion of non-printable/CJK chars (garbled memory)
+                const nonAsciiCount = [...extracted].filter(c => c.charCodeAt(0) > 0x7F).length;
+                if (nonAsciiCount > extracted.length * 0.3 && extracted.length > 20) {
+                    console.log(`[Faz5]   offset ${hitOff}: too many non-ASCII (${nonAsciiCount}/${extracted.length}), rejected`);
+                    continue;
+                }
+
+                console.log(`[Faz5]   offset ${hitOff}: extracted "${extracted.substring(0, 60).replace(/\n/g,'\\n')}" (${extracted.length} chars)`);
+
+                // Keep longest version
+                if (extracted.length > bestText.length) {
+                    bestText = extracted;
+                    bestOffset = hitOff;
+                }
+
+                // Track every valid extracted text
+                allMemoryTexts.push({ text: extracted, offset: hitOff, source: 'Faz 5b', encoding: 'UTF-16LE GapContent (prefix)', length: extracted.length });
+            } catch (e) {
+                console.warn('[Faz5]   offset', hitOff, 'error:', e);
+            }
+        }
+
+        console.log(`[Faz5] Arama "${search.prefix}" sonuç: bestText="${bestText.substring(0, 60).replace(/\n/g,'\\n')}" (${bestText.length} chars) offset=${bestOffset}`);
+
+        // Add unsaved-content variants (do not overwrite original phase outputs)
+        if (bestText.length > 0) {
+            for (const doc of search.docs) {
+                const savedText = doc.textContent.replace(/[\r\n]+$/, '');
+                if (bestText.length > savedText.length) {
+                    console.log(`[Faz5] Variant oluşturuluyor: doc ${doc.index}, bestText="${bestText.substring(0, 80).replace(/\n/g,'\\n')}" (was "${savedText.substring(0, 80).replace(/\n/g,'\\n')}")`);
+
+                    // Replace CDATA in a cloned variant
+                    const oldCdata = '<![CDATA[' + doc.textContent + ']]>';
+                    const newCdata = '<![CDATA[' + bestText + '\n]]>';
+                    let updatedContentXml = doc.contentXml;
+                    if (updatedContentXml.includes(oldCdata)) {
+                        updatedContentXml = updatedContentXml.replace(oldCdata, newCdata);
+                    } else {
+                        // Fallback: replace the entire CDATA block using regex
+                        console.log('[Faz5]   CDATA exact match failed, trying regex fallback');
+                        const cdataRegex = /<!\[CDATA\[[\s\S]*?\]\]>/;
+                        if (cdataRegex.test(updatedContentXml)) {
+                            updatedContentXml = updatedContentXml.replace(cdataRegex, '<![CDATA[' + bestText + '\n]]>');
+                        }
+                    }
+
+                    // Update the <content length="N"> attribute in <elements> to match new text length.
+                    // UYAP editor reads this attribute to determine how many chars to display.
+                    const newLen = bestText.length + 1; // +1 for trailing \n
+                    updatedContentXml = updatedContentXml.replace(
+                        /(<content\s+startOffset="0"\s+length=")(\d+)(")/,
+                        '$1' + newLen + '$3'
+                    );
+
+                    recoveredDocuments.push({
+                        index: recoveredDocuments.length + 1,
+                        contentXml: updatedContentXml,
+                        docPropsXml: doc.docPropsXml,
+                        textContent: bestText + '\n',
+                        formatId: doc.formatId,
+                        webId: doc.webId,
+                        size: Math.max(doc.size, bestText.length),
+                        offsetStart: doc.offsetStart,
+                        offsetEnd: doc.offsetEnd,
+                        sourcePhase: 'Faz 5',
+                        unsavedRecovery: true
+                    });
+                    console.log(`[Faz5] Variant eklendi: index=${recoveredDocuments.length}`);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Extract text from a Java GapContent char[] buffer (UTF-16LE).
+ * GapContent format: [text_before_gap][\0\0...gap...][text_after_gap]
+ * The gap is between the cursor position and the end of allocated space.
+ */
+function extractGapBufferText(charData) {
+    const charCount = Math.floor(charData.length / 2);
+    if (charCount === 0) return '';
+
+    // Decode UTF-16LE chars
+    const chars = new Array(charCount);
+    for (let i = 0; i < charCount; i++) {
+        chars[i] = charData[i * 2] | (charData[i * 2 + 1] << 8);
+    }
+
+    // Find gap start: first run of 4+ consecutive null chars
+    let gapStart = charCount;
+    let nullRun = 0;
+    for (let i = 0; i < charCount; i++) {
+        if (chars[i] === 0) {
+            nullRun++;
+            if (nullRun >= 4) {
+                gapStart = i - 3;
+                break;
+            }
+        } else {
+            nullRun = 0;
+        }
+    }
+
+    // Find after-gap text: scan backwards from buffer end
+    let afterGapStart = charCount;
+    for (let i = charCount - 1; i >= gapStart; i--) {
+        if (chars[i] !== 0) {
+            // Found non-null at end, scan backwards to find start of after-gap text
+            let j = i;
+            while (j >= gapStart && chars[j] !== 0) j--;
+            afterGapStart = j + 1;
+            break;
+        }
+    }
+
+    // Build text: before_gap + after_gap
+    let text = '';
+    for (let i = 0; i < gapStart; i++) {
+        text += String.fromCharCode(chars[i]);
+    }
+    for (let i = afterGapStart; i < charCount; i++) {
+        if (chars[i] === 0) break;
+        text += String.fromCharCode(chars[i]);
+    }
+
+    return text;
+}
+
+function buildZip(entries) {
+    // Build ZIP matching UYAP's original format:
+    // - Flags 0x0808 (data descriptor + UTF-8)
+    // - CRC/sizes = 0 in local headers
+    // - Data descriptor (PK\x07\x08 + CRC + compSize + uncompSize) after each entry's data
+    // - Real CRC/sizes in central directory
+    const localParts = [];      // { header, compressed, dataDescriptor, offset }
+    const centralHeaders = [];
+    let offset = 0;
+
+    for (const entry of entries) {
+        const nameBytes = encodeUTF8(entry.name);
+        const crc = crc32(entry.data);
+        const compSize = entry.compressed.length;
+        const uncompSize = entry.data.length;
+
+        // Local file header — CRC/sizes set to 0 (data descriptor flag)
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const lhView = new DataView(localHeader.buffer);
+        lhView.setUint32(0, 0x04034b50, true);     // PK\x03\x04
+        lhView.setUint16(4, 20, true);              // version needed (2.0)
+        lhView.setUint16(6, 0x0808, true);          // flags: data descriptor + UTF-8
+        lhView.setUint16(8, entry.method, true);    // compression method
+        lhView.setUint16(10, 0, true);              // mod time
+        lhView.setUint16(12, 0, true);              // mod date
+        lhView.setUint32(14, 0, true);              // CRC-32 = 0 (in data descriptor)
+        lhView.setUint32(18, 0, true);              // compressed size = 0
+        lhView.setUint32(22, 0, true);              // uncompressed size = 0
+        lhView.setUint16(26, nameBytes.length, true);
+        lhView.setUint16(28, 0, true);              // extra length
+        localHeader.set(nameBytes, 30);
+
+        // Data descriptor: PK\x07\x08 + CRC(4) + compSize(4) + uncompSize(4)
+        const dataDescriptor = new Uint8Array(16);
+        const ddView = new DataView(dataDescriptor.buffer);
+        ddView.setUint32(0, 0x08074b50, true);      // PK\x07\x08
+        ddView.setUint32(4, crc, true);
+        ddView.setUint32(8, compSize, true);
+        ddView.setUint32(12, uncompSize, true);
+
+        localParts.push({
+            header: localHeader,
+            compressed: entry.compressed,
+            dataDescriptor: dataDescriptor,
+            offset: offset
+        });
+
+        // Central directory header — has real CRC/sizes
+        const centralHeader = new Uint8Array(46 + nameBytes.length);
+        const chView = new DataView(centralHeader.buffer);
+        chView.setUint32(0, 0x02014b50, true);     // PK\x01\x02
+        chView.setUint16(4, 20, true);              // version made by
+        chView.setUint16(6, 20, true);              // version needed
+        chView.setUint16(8, 0x0808, true);          // flags
+        chView.setUint16(10, entry.method, true);   // method
+        chView.setUint16(12, 0, true);              // mod time
+        chView.setUint16(14, 0, true);              // mod date
+        chView.setUint32(16, crc, true);            // CRC
+        chView.setUint32(20, compSize, true);       // compressed size
+        chView.setUint32(24, uncompSize, true);     // uncompressed size
+        chView.setUint16(28, nameBytes.length, true);
+        chView.setUint16(30, 0, true);              // extra len
+        chView.setUint16(32, 0, true);              // comment len
+        chView.setUint16(34, 0, true);              // disk #
+        chView.setUint16(36, 0, true);              // internal attr
+        chView.setUint32(38, 0, true);              // external attr
+        chView.setUint32(42, offset, true);         // local header offset
+        centralHeader.set(nameBytes, 46);
+        centralHeaders.push(centralHeader);
+
+        offset += localHeader.length + compSize + dataDescriptor.length;
+    }
+
+    // Calculate total size
+    const centralDirOffset = offset;
+    let centralDirSize = 0;
+    for (const ch of centralHeaders) centralDirSize += ch.length;
+
+    const eocdSize = 22;
+    const totalSize = offset + centralDirSize + eocdSize;
+
+    const zipBuffer = new Uint8Array(totalSize);
+    let pos = 0;
+
+    // Write local file headers + compressed data + data descriptors
+    for (const lp of localParts) {
+        zipBuffer.set(lp.header, pos);
+        pos += lp.header.length;
+        zipBuffer.set(lp.compressed, pos);
+        pos += lp.compressed.length;
+        zipBuffer.set(lp.dataDescriptor, pos);
+        pos += lp.dataDescriptor.length;
+    }
+
+    // Write central directory
+    for (const ch of centralHeaders) {
+        zipBuffer.set(ch, pos);
+        pos += ch.length;
+    }
+
+    // Write EOCD
+    const eocd = new Uint8Array(22);
+    const eocdView = new DataView(eocd.buffer);
+    eocdView.setUint32(0, 0x06054b50, true);
+    eocdView.setUint16(4, 0, true);
+    eocdView.setUint16(6, 0, true);
+    eocdView.setUint16(8, entries.length, true);
+    eocdView.setUint16(10, entries.length, true);
+    eocdView.setUint32(12, centralDirSize, true);
+    eocdView.setUint32(16, centralDirOffset, true);
+    eocdView.setUint16(20, 0, true);
+    zipBuffer.set(eocd, pos);
+
+    return zipBuffer;
+}
+
+// CRC-32 implementation
+function crc32(data) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < data.length; i++) {
+        crc ^= data[i];
+        for (let j = 0; j < 8; j++) {
+            crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+        }
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+// ========== RESULTS DISPLAY ==========
+function showResults() {
+    resultsContainer.classList.add('active');
+
+    const allFindingsSection = document.getElementById('allFindingsSection');
+    const allFindingsContent = document.getElementById('allFindingsContent');
+    const allFindingsCount = document.getElementById('allFindingsCount');
+    const unmatchedMarkersSection = document.getElementById('unmatchedMarkersSection');
+    const unmatchedMarkersContent = document.getElementById('unmatchedMarkersContent');
+    const unmatchedMarkersCount = document.getElementById('unmatchedMarkersCount');
+
+    if (recoveredDocuments.length === 0 && allDocumentsBeforeDedup.length === 0) {
+        resultSummary.innerHTML = '';
+        resultsContent.innerHTML = `
+            <div class="no-results">
+                <div class="icon">😔</div>
+                <h3>Doküman Bulunamadı</h3>
+                <p>Bellek dökümünde UYAP Doküman Editörü verisi tespit edilemedi.</p>
+                <p>Döküm dosyasının doğru Java işleminden alındığından emin olun.</p>
+            </div>
+        `;
+        exportAllBar.classList.remove('active');
+        allFindingsSection.style.display = 'none';
+        unmatchedMarkersSection.style.display = 'none';
+        // Still show memory texts and marker hits even if no docs found
+        const allMemoryTextsSection = document.getElementById('allMemoryTextsSection');
+        const allMemoryTextsContent = document.getElementById('allMemoryTextsContent');
+        const allMemoryTextsCount = document.getElementById('allMemoryTextsCount');
+        renderAllMemoryTexts(allMemoryTextsSection, allMemoryTextsContent, allMemoryTextsCount);
+        renderUnmatchedMarkers(unmatchedMarkersSection, unmatchedMarkersContent, unmatchedMarkersCount);
+        return;
+    }
+
+    // Summary
+    const totalSize = recoveredDocuments.reduce((sum, d) => sum + d.size, 0);
+    resultSummary.innerHTML = `
+        <div class="stat-box">
+            <div class="num">${recoveredDocuments.length}</div>
+            <div class="label">Kurtarılan Doküman</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">${formatSize(totalSize)}</div>
+            <div class="label">Toplam Veri</div>
+        </div>
+    `;
+
+    if (recoveredDocuments.length > 1) {
+        exportAllBar.classList.add('active');
+    }
+
+    // Document cards (deduplicated best results)
+    let html = '';
+    for (const doc of recoveredDocuments) {
+        const escapedText = escapeHtml(doc.textContent || '(Metin içeriği bulunamadı)');
+        const escapedXml = escapeHtml(doc.contentXml);
+
+        const unsavedBadge = doc.unsavedRecovery
+            ? '<span style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:4px;font-size:0.8em;margin-left:8px;">⚡ Kaydedilmemiş içerik kurtarıldı</span>'
+            : '';
+
+        html += `
+        <div class="doc-card" id="doc-${doc.index}">
+            <div class="doc-header">
+                <div>
+                    <h3>📄 Doküman #${doc.index}${unsavedBadge}</h3>
+                    <div class="doc-meta">
+                        <span>Kaynak: ${doc.sourcePhase || 'Faz ?'}</span>
+                        <span>Format: ${doc.formatId}</span>
+                        <span>Boyut: ${formatSize(doc.size)}</span>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <button class="btn btn-primary" onclick="togglePreview(${doc.index}, 'text')">📖 Metin Önizle</button>
+                    <button class="btn btn-outline" onclick="togglePreview(${doc.index}, 'xml')">🔧 XML Görüntüle</button>
+                    <button class="btn btn-success" onclick="exportSingleUDF(${doc.index})">⬇️ UDF İndir</button>
+                </div>
+            </div>
+            <div class="doc-text-preview" id="text-preview-${doc.index}" style="display:none">
+                ${escapedText}
+            </div>
+            <div class="doc-preview" id="xml-preview-${doc.index}">
+                ${escapedXml}
+            </div>
+        </div>
+        `;
+    }
+
+    resultsContent.innerHTML = html;
+
+    // ===== "Tüm Bulunanlar" section =====
+    renderAllFindings(allFindingsSection, allFindingsContent, allFindingsCount);
+
+    // ===== "Bellekte Bulunan Tüm Metinler" section =====
+    const allMemoryTextsSection = document.getElementById('allMemoryTextsSection');
+    const allMemoryTextsContent = document.getElementById('allMemoryTextsContent');
+    const allMemoryTextsCount = document.getElementById('allMemoryTextsCount');
+    renderAllMemoryTexts(allMemoryTextsSection, allMemoryTextsContent, allMemoryTextsCount);
+
+    // ===== "Eşleşmeyen Marker Hit'leri" section =====
+    renderUnmatchedMarkers(unmatchedMarkersSection, unmatchedMarkersContent, unmatchedMarkersCount);
+}
+
+function renderAllFindings(section, contentEl, countEl) {
+    if (allDocumentsBeforeDedup.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    countEl.textContent = `(${allDocumentsBeforeDedup.length} bulgu)`;
+
+    // Group by phase
+    const phaseGroups = {};
+    for (const doc of allDocumentsBeforeDedup) {
+        const phase = doc.sourcePhase || 'Bilinmiyor';
+        if (!phaseGroups[phase]) phaseGroups[phase] = [];
+        phaseGroups[phase].push(doc);
+    }
+
+    let tableHtml = `
+    <table class="findings-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Faz</th>
+                <th>Metin Önizleme</th>
+                <th>Metin Uzunluğu</th>
+                <th>Boyut</th>
+                <th>Offset</th>
+                <th>Format</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    let rowIdx = 0;
+    for (const doc of allDocumentsBeforeDedup) {
+        rowIdx++;
+        const textPreview = (doc.textContent || '').replace(/[\r\n]+/g, ' ').substring(0, 120);
+        const textLen = (doc.textContent || '').replace(/[\r\n]+$/, '').length;
+        const isInFinal = recoveredDocuments.some(rd =>
+            rd.textContent && doc.textContent &&
+            rd.textContent.substring(0, 200).trim() === doc.textContent.substring(0, 200).trim() &&
+            rd.sourcePhase === doc.sourcePhase
+        );
+        const statusBadge = isInFinal
+            ? '<span style="color:#28a745; font-weight:600;">✓ Seçildi</span>'
+            : '<span style="color:#6c757d;">Dedup\'tan elendi</span>';
+
+        tableHtml += `
+            <tr>
+                <td>${rowIdx}</td>
+                <td><strong>${escapeHtml(doc.sourcePhase || '?')}</strong></td>
+                <td><div class="text-preview">${escapeHtml(textPreview)}</div></td>
+                <td>${textLen.toLocaleString('tr-TR')} kar.</td>
+                <td>${formatSize(doc.size)}</td>
+                <td style="font-family:monospace; font-size:0.85em;">0x${(doc.offsetStart || 0).toString(16).toUpperCase()}</td>
+                <td>${escapeHtml(doc.formatId || '-')}</td>
+                <td>${statusBadge}</td>
+            </tr>
+        `;
+    }
+
+    tableHtml += '</tbody></table>';
+
+    // Phase summary
+    let phaseSummary = Object.entries(phaseGroups).map(([phase, docs]) =>
+        `<span class="marker-tag"><strong>${phase}</strong>: ${docs.length}</span>`
+    ).join(' ');
+
+    contentEl.innerHTML = `
+        <div style="margin-top: 12px; margin-bottom: 8px;">
+            Faz dağılımı: ${phaseSummary}
+        </div>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+            ${tableHtml}
+        </div>
+    `;
+}
+
+function renderAllMemoryTexts(section, contentEl, countEl) {
+    if (allMemoryTexts.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+
+    // Sort by text length descending
+    const sorted = [...allMemoryTexts].sort((a, b) => b.length - a.length);
+    countEl.textContent = `(${sorted.length} metin)`;
+
+    // Group by source
+    const sourceGroups = {};
+    for (const item of sorted) {
+        if (!sourceGroups[item.source]) sourceGroups[item.source] = [];
+        sourceGroups[item.source].push(item);
+    }
+
+    let sourceSummary = Object.entries(sourceGroups).map(([src, items]) =>
+        `<span class="marker-tag"><strong>${src}</strong>: ${items.length}</span>`
+    ).join(' ');
+
+    let tableHtml = `
+    <table class="findings-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Kaynak</th>
+                <th>Kodlama</th>
+                <th>Metin Önizleme</th>
+                <th>Uzunluk</th>
+                <th>Offset</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (let i = 0; i < sorted.length; i++) {
+        const item = sorted[i];
+        const textPreview = item.text.replace(/[\r\n]+/g, ' ').substring(0, 150);
+
+        tableHtml += `
+            <tr>
+                <td>${i + 1}</td>
+                <td><strong>${escapeHtml(item.source)}</strong></td>
+                <td style="font-size:0.85em;">${escapeHtml(item.encoding)}</td>
+                <td><div class="text-preview">${escapeHtml(textPreview)}</div></td>
+                <td>${item.length.toLocaleString('tr-TR')} kar.</td>
+                <td style="font-family:monospace; font-size:0.85em;">0x${(item.offset || 0).toString(16).toUpperCase()}</td>
+            </tr>
+        `;
+    }
+
+    tableHtml += '</tbody></table>';
+
+    contentEl.innerHTML = `
+        <div style="margin-top: 12px; margin-bottom: 8px;">
+            Kaynak dağılımı: ${sourceSummary}
+        </div>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+            ${tableHtml}
+        </div>
+    `;
+}
+
+function renderUnmatchedMarkers(section, contentEl, countEl) {
+    // Filter to unmatched regions only
+    const unmatched = allMarkerRegions.filter(r => !r.matched);
+
+    if (unmatched.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    // Sort by text length descending
+    unmatched.sort((a, b) => b.textLength - a.textLength);
+
+    section.style.display = 'block';
+    countEl.textContent = `(${unmatched.length} bölge)`;
+
+    let cardsHtml = '';
+    for (let i = 0; i < unmatched.length; i++) {
+        const r = unmatched[i];
+        const markerTags = r.markers.map(m =>
+            `<span class="marker-tag">${escapeHtml(m.name)}</span>`
+        ).join(' ');
+
+        const textPreview = r.text ? escapeHtml(r.text.substring(0, 500)) : '<em>(metin çıkarılamadı)</em>';
+
+        cardsHtml += `
+        <div class="marker-region-card">
+            <div class="region-header">
+                <div>
+                    <strong>Bölge #${i + 1}</strong>
+                    <span style="color:var(--text-secondary); font-size:0.85em; margin-left:8px;">
+                        Offset: 0x${(r.offset || 0).toString(16).toUpperCase()} |
+                        Metin: ${r.textLength.toLocaleString('tr-TR')} karakter |
+                        Marker: ${r.markers.length}
+                    </span>
+                </div>
+            </div>
+            <div style="margin: 4px 0;">Marker'lar: ${markerTags}</div>
+            ${r.reason ? `<div class="reject-reason">❌ Red sebebi: ${escapeHtml(r.reason)}</div>` : ''}
+            <div class="region-text">${textPreview}</div>
+        </div>
+        `;
+    }
+
+    contentEl.innerHTML = `
+        <div style="margin-top: 12px; max-height: 600px; overflow-y: auto;">
+            ${cardsHtml}
+        </div>
+    `;
+}
+
+function toggleCollapsible(contentId, toggleId) {
+    const content = document.getElementById(contentId);
+    const toggle = document.getElementById(toggleId);
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggle.classList.add('open');
+    } else {
+        content.style.display = 'none';
+        toggle.classList.remove('open');
+    }
+}
+
+function togglePreview(index, type) {
+    const textEl = document.getElementById(`text-preview-${index}`);
+    const xmlEl = document.getElementById(`xml-preview-${index}`);
+
+    if (type === 'text') {
+        textEl.style.display = textEl.style.display === 'none' ? 'block' : 'none';
+        xmlEl.style.display = 'none';
+    } else {
+        xmlEl.classList.toggle('active');
+        textEl.style.display = 'none';
+    }
+}
+
+// ========== EXPORT FUNCTIONS ==========
+async function exportSingleUDF(index) {
+    const doc = recoveredDocuments.find(d => d.index === index);
+    if (!doc) return;
+
+    try {
+        const udfData = await createUDF(doc.contentXml, doc.docPropsXml);
+        const filename = `kurtarilan_dokuman_${index}.udf`;
+        downloadBlob(udfData, filename);
+    } catch (err) {
+        console.error(err);
+        alert('UDF oluşturulurken hata: ' + err.message);
+    }
+}
+
+async function exportAllUDF() {
+    for (const doc of recoveredDocuments) {
+        try {
+            const udfData = await createUDF(doc.contentXml, doc.docPropsXml);
+            const filename = `kurtarilan_dokuman_${doc.index}.udf`;
+            downloadBlob(udfData, filename);
+            await sleep(500); // Small delay between downloads
+        } catch (err) {
+            console.error(`Doküman ${doc.index} hatası:`, err);
+        }
+    }
+}
+
+function downloadBlob(data, filename) {
+    const blob = new Blob([data], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ========== UTILITY FUNCTIONS ==========
+function updateProgress(pct, msg) {
+    progressBar.style.width = pct + '%';
+    progressText.textContent = '%' + pct;
+    if (msg) statusMsg.textContent = msg;
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+</script>
+
+</body>
+</html>
