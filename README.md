@@ -7,6 +7,7 @@
 ## İçindekiler
 
 - [Genel Bakış](#genel-bakış)
+- [GitHub Pages](#github-pages)
 - [Nasıl Çalışır?](#nasıl-çalışır)
 - [Altı Fazlı Tarama Motoru](#altı-fazlı-tarama-motoru)
   - [Faz 1 — İmza Taraması](#faz-1--i%CC%87mza-taramas%C4%B1)
@@ -45,6 +46,14 @@ UYAP Doküman Editörü Java tabanlı bir uygulamadır. Uygulama kilitlendiğind
 - Birden fazla kurtarma stratejisini (6 faz) art arda çalıştırarak kurtarma olasılığını artırır.
 - Kurtarılan belgeleri `.udf` veya düz metin alma imkânı sunar.
 - Büyük dosyaları (birkaç GB'a kadar) parça parça okuyarak bellek tüketimini kontrol altında tutar.
+
+---
+
+## GitHub Pages
+
+Araca doğrudan erişmek için:
+
+**[https://halilselcuk.github.io/Dokuman-Editoru-Veri-Kurtarma-Yardimcisi/](https://halilselcuk.github.io/Dokuman-Editoru-Veri-Kurtarma-Yardimcisi/)**
 
 ---
 
